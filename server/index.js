@@ -16,7 +16,12 @@ import addressRouter from './route/address.route.js'
 import orderRouter from './route/order.route.js'
 
 const app = express()
-app.use(cors())
+app.use(cors({
+    origin: "https://blinkit-clone-wz7r.vercel.app/", // Replace with your frontend URL
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT', 'COPY', 'LOCK', 'MKCOL', 'MOVE', 'PROPFIND', 'PROPPATCH', 'SEARCH', 'UNLOCK', 'BIND', 'REBIND', 'UNBIND'],
+   
+}))
 app.use(express.json())
 app.use(cookieParser())
 app.use(morgan())
