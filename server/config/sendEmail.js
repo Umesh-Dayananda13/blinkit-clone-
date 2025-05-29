@@ -28,7 +28,7 @@ const sendTestEmail = async ({ sendTo, subject, html, text }) => {
 
     // Send email using Resend's test domain
     const { data, error } = await resend.emails.send({
-      from: 'Binkeyit <onboarding@resend.dev>', // Using Resend's test domain
+      from: 'Blinkit <onboarding@resend.dev>', // Using Resend's test domain
       to: Array.isArray(sendTo) ? sendTo : [sendTo], // Ensure it's an array
       subject: subject,
       html: html,
