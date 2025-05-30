@@ -265,47 +265,63 @@ export const deleteProductDetails = async(request,response)=>{
 }
 
 //search product
-export const searchProduct = async(request,response)=>{
+export const searchProduct = async (request, response) => {
     try {
-        let { search, page , limit } = request.body 
+        let { search, page, limit } = request.body;
 
-        if(!page){
-            page = 1
-        }
-        if(!limit){
-            limit  = 10
-        }
+        if (!page) page = 1;
+        if (!limit) limit = 10;
 
-        const query = search ? {
-            $text : {
-                $search : search
+        const skip = (page - 1) * limit;
+
+        let query = {};
+        let projection = {};
+        let sort = { createdAt: -1 };
+
+        if (search?.trim()) {
+            const isShort = search.trim().length < 3;
+
+            if (isShort) {
+                // Use regex for short/prefix searches
+                query = {
+                    $or: [
+                        { name: { $regex: search, $options: "i" } },
+                        { description: { $regex: search, $options: "i" } }
+                    ]
+                };
+            } else {
+                // Use text search for full terms
+                query = { $text: { $search: search } };
+                projection = { score: { $meta: "textScore" } };
+                sort = { score: { $meta: "textScore" } };
             }
-        } : {}
+        }
 
-        const skip = ( page - 1) * limit
-
-        const [data,dataCount] = await Promise.all([
-            ProductModel.find(query).sort({ createdAt  : -1 }).skip(skip).limit(limit).populate('category subCategory'),
+        const [data, dataCount] = await Promise.all([
+            ProductModel.find(query, projection)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .populate('category subCategory'),
             ProductModel.countDocuments(query)
-        ])
+        ]);
 
         return response.json({
-            message : "Product data",
-            error : false,
-            success : true,
-            data : data,
-            totalCount :dataCount,
-            totalPage : Math.ceil(dataCount/limit),
-            page : page,
-            limit : limit 
-        })
-
+            message: "Product data",
+            error: false,
+            success: true,
+            data,
+            totalCount: dataCount,
+            totalPage: Math.ceil(dataCount / limit),
+            page,
+            limit
+        });
 
     } catch (error) {
         return response.status(500).json({
-            message : error.message || error,
-            error : true,
-            success : false
-        })
+            message: error.message || error,
+            error: true,
+            success: false
+        });
     }
-}
+};
